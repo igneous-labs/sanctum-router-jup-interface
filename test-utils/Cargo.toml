@@ -1,0 +1,20 @@
+[package]
+name = "test-utils"
+edition.workspace = true
+license-file.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+generic-array-struct = { workspace = true }
+glob = { workspace = true }
+lazy_static = { workspace = true }
+mollusk-svm = { workspace = true }
+mollusk-svm-programs-token = { workspace = true, features = ["associated-token", "token"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+solana-account = { workspace = true }
+solana-account-decoder-client-types = { workspace = true }
+solana-instruction = { workspace = true }
+solana-program-error = { workspace = true }
+solana-pubkey = { workspace = true }

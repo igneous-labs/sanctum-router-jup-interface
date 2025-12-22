@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "jup-interface",
+    "test-utils",
+]
+
+[workspace.package]
+edition = "2021"
+license-file = "LICENSE"
+version = "0.1.0"
+
+[workspace.dependencies]
+# In general, keep default-features = false in workspace
+# and enable individual features in indiv crates
+anyhow = { version = "^1", default-features = false }
+generic-array-struct = { version = "^0.3.1", default-features = false }
+glob = { version = "^0.3", default-features = false }
+jupiter-amm-interface = { version = "^0.6", default-features = false }
+lazy_static = { version = "^1", default-features = false }
+rust_decimal = { version = "^1.36.0", default-features = false } # vers constraint based on jupiter-amm-interface
+serde = { version = "^1", default-features = false }
+serde_json = { version = "^1", default-features = false }
+
+# solana crates
+mollusk-svm = { version = "^0.5", default-features = false }
+mollusk-svm-programs-token = { version = "^0.5", default-features = false }
+# vers constraint of crates below based on jupiter-amm-interface solana-sdk subdep
+solana-account = { version = "^2.2.1", default-features = false }
+solana-account-decoder-client-types = { version = "^2", default-features = false }
+solana-instruction = { version = "^2.3.0", default-features = false }
+solana-program-error = { version = "^2", default-features = false }
+solana-pubkey = { version = "^2.2.1", default-features = false }
+solana-sha256-hasher = { version = "^2.2.1", default-features = false }
+
+# sanctum router crates
+
+# workspace members
+test-utils = { path = "./test-utils" }

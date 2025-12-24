@@ -1,7 +1,7 @@
 use generic_array_struct::generic_array_struct;
 use solana_pubkey::Pubkey;
 
-#[generic_array_struct(builder pub)]
+#[generic_array_struct(pub)]
 pub struct ConstKeys<T> {
     // sysvars and cluster consts
     pub sysvar_owner: T,

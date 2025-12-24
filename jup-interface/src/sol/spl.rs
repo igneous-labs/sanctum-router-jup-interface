@@ -139,7 +139,8 @@ impl Amm for SplStakePoolSolAmm {
             find_stake_pool_amm_key(key.as_array()).ok_or_else(|| invalid_pda("amm key"))?;
 
         let [p, w] = [&stake_pool.pool_mint, &NATIVE_MINT].map(|mint| {
-            find_fee_token_account_pda(mint).ok_or_else(|| invalid_pda("fee token account"))
+            find_fee_token_account_pda(mint)
+                .ok_or_else(|| invalid_pda(&format!("{} fee token account", Pubkey::from(*mint))))
         });
         let pool_mint_sr_fee_token_acc = p?.0;
         let wsol_sr_fee_token_acc = w?.0;

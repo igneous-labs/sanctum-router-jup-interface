@@ -2633,13 +2633,14 @@ name = "sanctum-router-jup-interface"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "generic-array-struct",
  "jupiter-amm-interface",
+ "lazy_static",
  "rust_decimal",
  "sanctum-router-std",
  "solana-account",
  "solana-instruction",
  "solana-pubkey",
- "solana-sha256-hasher",
  "test-utils",
 ]
 
@@ -2661,6 +2662,15 @@ dependencies = [
  "generic-array-struct",
  "sanctum-fee-ratio",
  "sanctum-u64-ratio",
+]
+
+[[package]]
+name = "sanctum-spl-token-core"
+version = "0.1.0"
+source = "git+https://github.com/igneous-labs/sanctum-spl-token-sdk.git?branch=master#b8dc2602ee4fc15ca92d86737fc8ef2e2f69cb89"
+dependencies = [
+ "const-crypto",
+ "generic-array-struct",
 ]
 
 [[package]]
@@ -5150,11 +5160,13 @@ dependencies = [
 name = "test-utils"
 version = "0.1.0"
 dependencies = [
+ "ahash 0.8.12",
  "generic-array-struct",
  "glob",
  "lazy_static",
  "mollusk-svm",
  "mollusk-svm-programs-token",
+ "sanctum-spl-token-core",
  "serde",
  "serde_json",
  "solana-account",

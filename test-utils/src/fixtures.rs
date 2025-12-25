@@ -13,7 +13,8 @@ use solana_pubkey::Pubkey;
 
 use crate::{mock_prog_acc, CONST_PUBKEYS};
 
-pub const FIXTURE_PROGRAMS: [(&str, Pubkey); 2] = [
+pub const FIXTURE_PROGRAMS: [(&str, Pubkey); 3] = [
+    ("stake", *CONST_PUBKEYS.stake_prog()),
     ("stake-pool", *CONST_PUBKEYS.spl_prog()),
     ("sanctum-router", *CONST_PUBKEYS.sanctum_router_prog()),
 ];

@@ -1,12 +1,12 @@
 use jupiter_amm_interface::{QuoteParams, SwapMode};
 use sanctum_router_jup_interface::SplStakePoolSolAmm;
-use test_utils::{mock_signer, mock_tokenkeg_acc, ALL_FIXTURES, CONST_PUBKEYS};
+use test_utils::{ALL_FIXTURES, CONST_PUBKEYS, SVM};
 
-use crate::common::{
-    swap_test, SwapUserAccsDestr, SwapUserKeyedAccounts, TEST_SIGNER, TOKEN_ACC_1, TOKEN_ACC_2,
-};
+use crate::common::{swap_test, SwapUserKeyedAccounts};
 
 const STAKE_WRAPPED_SOL_UPDATE_CYCLES: usize = 0;
+
+const WITHDRAW_WRAPPED_SOL_UPDATE_CYCLES: usize = 1;
 
 const STAKE_WRAPPED_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
     amount: 1_000_000_000,
@@ -15,31 +15,36 @@ const STAKE_WRAPPED_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
     swap_mode: SwapMode::ExactIn,
 };
 
+const WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
+    input_mint: STAKE_WRAPPED_SOL_QUOTE_PARAMS.output_mint,
+    output_mint: STAKE_WRAPPED_SOL_QUOTE_PARAMS.input_mint,
+    ..STAKE_WRAPPED_SOL_QUOTE_PARAMS
+};
+
 #[test]
 fn stake_wrapped_sol_bsol_fixture_basic() {
-    swap_test::<SplStakePoolSolAmm>(
-        &STAKE_WRAPPED_SOL_QUOTE_PARAMS,
-        &ALL_FIXTURES,
-        CONST_PUBKEYS.bsol_stake_pool(),
-        SwapUserKeyedAccounts::from_destr(SwapUserAccsDestr {
-            signer: (TEST_SIGNER, mock_signer()),
-            inp_token_acc: (
-                TOKEN_ACC_1,
-                mock_tokenkeg_acc(
-                    CONST_PUBKEYS.wsol_mint().to_bytes(),
-                    TEST_SIGNER.to_bytes(),
-                    STAKE_WRAPPED_SOL_QUOTE_PARAMS.amount,
-                ),
-            ),
-            out_token_acc: (
-                TOKEN_ACC_2,
-                mock_tokenkeg_acc(
-                    CONST_PUBKEYS.bsol_mint().to_bytes(),
-                    TEST_SIGNER.to_bytes(),
-                    0,
-                ),
-            ),
-        }),
-        STAKE_WRAPPED_SOL_UPDATE_CYCLES,
-    );
+    SVM.with(|svm| {
+        swap_test::<SplStakePoolSolAmm>(
+            svm,
+            &STAKE_WRAPPED_SOL_QUOTE_PARAMS,
+            &ALL_FIXTURES,
+            CONST_PUBKEYS.bsol_stake_pool(),
+            SwapUserKeyedAccounts::from_qp(&STAKE_WRAPPED_SOL_QUOTE_PARAMS),
+            STAKE_WRAPPED_SOL_UPDATE_CYCLES,
+        )
+    });
+}
+
+#[test]
+fn withdraw_wrapped_sol_bsol_fixture_basic() {
+    SVM.with(|svm| {
+        swap_test::<SplStakePoolSolAmm>(
+            svm,
+            &WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS,
+            &ALL_FIXTURES,
+            CONST_PUBKEYS.bsol_stake_pool(),
+            SwapUserKeyedAccounts::from_qp(&WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS),
+            WITHDRAW_WRAPPED_SOL_UPDATE_CYCLES,
+        )
+    });
 }

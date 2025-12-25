@@ -1,15 +1,15 @@
 use anyhow::anyhow;
 use generic_array_struct::generic_array_struct;
 use jupiter_amm_interface::{
-    AccountMap, Amm, KeyedAccount, QuoteParams, Swap, SwapAndAccountMetas, SwapParams,
+    AccountMap, Amm, KeyedAccount, QuoteParams, Swap, SwapAndAccountMetas, SwapMode, SwapParams,
 };
-use sanctum_router_std::StakeWrappedSolIxData;
+use sanctum_router_std::{StakeWrappedSolIxData, WithdrawWrappedSolIxData};
 use solana_account::Account;
 use solana_instruction::Instruction;
 use solana_pubkey::Pubkey;
-use test_utils::{mollusk_exec, ExecOk, SVM};
+use test_utils::{mock_signer, mock_tokenkeg_acc, mollusk_exec, ExecOk, Mollusk};
 
-use crate::common::AMM_CONTEXT;
+use crate::common::{AMM_CONTEXT, TEST_SIGNER, TOKEN_ACC_1, TOKEN_ACC_2};
 
 #[generic_array_struct(builder destr trymap pub)]
 #[derive(Default)]
@@ -22,6 +22,30 @@ pub struct SwapUserAccs<T> {
 
 pub type SwapUserKeyedAccounts = SwapUserAccs<(Pubkey, Account)>;
 
+impl SwapUserKeyedAccounts {
+    pub fn from_qp(
+        QuoteParams {
+            input_mint,
+            output_mint,
+            amount,
+            swap_mode,
+        }: &QuoteParams,
+    ) -> Self {
+        assert!(matches!(swap_mode, SwapMode::ExactIn));
+        Self::from_destr(SwapUserAccsDestr {
+            signer: (TEST_SIGNER, mock_signer()),
+            inp_token_acc: (
+                TOKEN_ACC_1,
+                mock_tokenkeg_acc(input_mint.to_bytes(), TEST_SIGNER.to_bytes(), *amount),
+            ),
+            out_token_acc: (
+                TOKEN_ACC_2,
+                mock_tokenkeg_acc(output_mint.to_bytes(), TEST_SIGNER.to_bytes(), 0),
+            ),
+        })
+    }
+}
+
 /// The whole point of it all:
 ///
 /// - inits Amm struct
@@ -31,6 +55,7 @@ pub type SwapUserKeyedAccounts = SwapUserAccs<(Pubkey, Account)>;
 /// - mollusk execute swap
 /// - assert amount in and out matches quote
 pub fn swap_test<A: Amm>(
+    svm: &Mollusk,
     qp: &QuoteParams,
     onchain_state: &AccountMap,
     init_pk: &Pubkey,
@@ -74,17 +99,23 @@ pub fn swap_test<A: Amm>(
 
     let user_keys = SwapUserAccs(user.0.each_ref().map(|(pk, _)| *pk));
 
-    // need to include user accounts into state as well
     let accs_bef = onchain_state
         .iter()
         .map(|(pk, ac)| (*pk, ac.clone()))
+        // need to include user accounts into state as well
         .chain(user.0)
+        // sysvars that are read by instructions from accounts
+        // need to be explicitly added as accounts
+        .chain([
+            svm.sysvars.keyed_account_for_stake_history_sysvar(),
+            svm.sysvars.keyed_account_for_clock_sysvar(),
+        ])
         .collect();
 
     let ExecOk {
         resulting_accounts: accs_aft,
         ..
-    } = SVM.with(|svm| mollusk_exec(svm, &[ix], &accs_bef)).unwrap();
+    } = mollusk_exec(svm, &[ix], &accs_bef).unwrap();
 
     assert_balance_change(
         &accs_bef,
@@ -123,6 +154,7 @@ fn saam_to_ix(
 ) -> Instruction {
     let data = match swap {
         Swap::StakeDexStakeWrappedSol => StakeWrappedSolIxData::new(amt).to_buf().into(),
+        Swap::StakeDexWithdrawWrappedSol => WithdrawWrappedSolIxData::new(amt).to_buf().into(),
         _ => unreachable!(),
     };
 

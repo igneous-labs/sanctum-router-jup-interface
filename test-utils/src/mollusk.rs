@@ -1,16 +1,16 @@
 use std::{collections::HashSet, path::Path};
 
 use ahash::HashMap;
-use mollusk_svm::{
-    result::{InstructionResult, ProgramResult},
-    Mollusk,
-};
+use mollusk_svm::result::{InstructionResult, ProgramResult};
 use solana_account::Account;
 use solana_instruction::{error::InstructionError, Instruction};
 use solana_program_error::ProgramError;
 use solana_pubkey::Pubkey;
 
 use crate::{test_fixtures_dir, CONST_PUBKEYS, FIXTURE_PROGRAMS, TEST_EPOCH};
+
+// Re-exports
+pub use mollusk_svm::Mollusk;
 
 thread_local! {
     pub static SVM: Mollusk = mollusk_base();

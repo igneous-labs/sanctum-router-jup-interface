@@ -12,6 +12,7 @@ pub struct ConstKeys<T> {
     pub bpf_loader_upgradeable: T,
 
     // programs
+    pub stake_prog: T,
     pub spl_prog: T,
     pub sanctum_router_prog: T,
 
@@ -32,6 +33,7 @@ impl<T: Copy> ConstKeys<T> {
 pub const CONST_KEYS_STR: ConstKeys<&'static str> = ConstKeys::memset("")
     .const_with_sysvar_clock("SysvarC1ock11111111111111111111111111111111")
     .const_with_bpf_loader_upgradeable("BPFLoaderUpgradeab1e11111111111111111111111")
+    .const_with_stake_prog("Stake11111111111111111111111111111111111111")
     .const_with_spl_prog("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy")
     .const_with_sanctum_router_prog("stkitrT1Uoy18Dk1fTrgPw8W6MVzoCfYoAFT4MLsmhq")
     .const_with_wsol_mint("So11111111111111111111111111111111111111112")

@@ -35,8 +35,9 @@ pub struct SplStakePoolSolAmm {
     pub curr_epoch: Arc<AtomicU64>,
     pub state: SplStakePoolSolState,
     pub stake_pool_label: String,
-    pub amm_key: [u8; 32],
 
+    // Cached PDAs below
+    pub amm_key: [u8; 32],
     // sanctum router program fee token account PDAs
     pub pool_mint_sr_fee_token_acc: [u8; 32],
     pub wsol_sr_fee_token_acc: [u8; 32],

@@ -5184,6 +5184,7 @@ dependencies = [
  "lazy_static",
  "mollusk-svm",
  "mollusk-svm-programs-token",
+ "sanctum-router-std",
  "sanctum-spl-token-core",
  "serde",
  "serde_json",

@@ -21,3 +21,5 @@ lazy_static! {
 pub const TEST_SIGNER: Pubkey = Pubkey::from_str_const("11111111111111111111111111111112");
 pub const TOKEN_ACC_1: Pubkey = Pubkey::from_str_const("11111111111111111111111111111113");
 pub const TOKEN_ACC_2: Pubkey = Pubkey::from_str_const("11111111111111111111111111111114");
+
+pub const LIDO_RESERVE_STAKE_UPDATE_CYCLES: usize = 1;

@@ -6,7 +6,10 @@ use std::{
 use ahash::HashMap;
 use glob::glob;
 use lazy_static::lazy_static;
-use sanctum_router_std::sanctum_marinade_liquid_staking_core::MARINADE_STAKING_PROGRAM;
+use sanctum_router_std::{
+    sanctum_marinade_liquid_staking_core::MARINADE_STAKING_PROGRAM,
+    sanctum_reserve_core::UNSTAKE_PROGRAM, solido_legacy_core,
+};
 use serde::{Deserialize, Serialize};
 use solana_account::Account;
 use solana_account_decoder_client_types::UiAccount;
@@ -14,11 +17,16 @@ use solana_pubkey::Pubkey;
 
 use crate::{mock_prog_acc, CONST_PUBKEYS};
 
-pub const FIXTURE_PROGRAMS: [(&str, Pubkey); 4] = [
+pub const FIXTURE_PROGRAMS: [(&str, Pubkey); 6] = [
+    (
+        "lido",
+        Pubkey::new_from_array(solido_legacy_core::PROGRAM_ID),
+    ),
+    ("marinade", Pubkey::new_from_array(MARINADE_STAKING_PROGRAM)),
+    ("sanctum-reserve", Pubkey::new_from_array(UNSTAKE_PROGRAM)),
+    ("sanctum-router", *CONST_PUBKEYS.sanctum_router_prog()),
     ("stake", *CONST_PUBKEYS.stake_prog()),
     ("stake-pool", *CONST_PUBKEYS.spl_prog()),
-    ("sanctum-router", *CONST_PUBKEYS.sanctum_router_prog()),
-    ("marinade", Pubkey::new_from_array(MARINADE_STAKING_PROGRAM)),
 ];
 
 lazy_static! {

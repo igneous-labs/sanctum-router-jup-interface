@@ -4,11 +4,13 @@ use jupiter_amm_interface::{
     AccountMap, Amm, AmmContext, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas,
     SwapMode, SwapParams,
 };
-use sanctum_router_std::{StakeWrappedSolIxData, WithdrawWrappedSolIxData};
+use sanctum_router_std::{
+    DepositStakeIxData, PrefundWithdrawStakeIxData, StakeWrappedSolIxData, WithdrawWrappedSolIxData,
+};
 use solana_account::Account;
-use solana_instruction::Instruction;
+use solana_instruction::{AccountMeta, Instruction};
 use solana_pubkey::Pubkey;
-use test_utils::{mock_signer, mock_tokenkeg_acc, mollusk_exec, ExecOk, Mollusk};
+use test_utils::{mock_signer, mock_tokenkeg_acc, mollusk_exec, ExecOk, Mollusk, CONST_PUBKEYS};
 
 use crate::common::{AMM_CONTEXT, TEST_SIGNER, TOKEN_ACC_1, TOKEN_ACC_2};
 
@@ -84,11 +86,11 @@ pub fn swap_test<A: Amm>(
             token_transfer_authority: user.signer().0,
             // dont-cares
             quote_mint_to_referrer: Default::default(),
-            jupiter_program_id: &Default::default(),
+            jupiter_program_id: CONST_PUBKEYS.jup_prog(),
             missing_dynamic_accounts_as_default: Default::default(),
         })
         .unwrap();
-    let ix = saam_to_ix(qp.amount, saam);
+    let ixs = saam_to_ixs(qp.amount, saam);
 
     let user_keys = SwapUserAccs(user.0.each_ref().map(|(pk, _)| *pk));
 
@@ -108,7 +110,7 @@ pub fn swap_test<A: Amm>(
     let ExecOk {
         resulting_accounts: accs_aft,
         ..
-    } = mollusk_exec(svm, &[ix], &accs_bef).unwrap();
+    } = mollusk_exec(svm, &ixs, &accs_bef).unwrap();
 
     assert_balance_change(
         &accs_bef,
@@ -153,31 +155,73 @@ pub fn update_cycle(amm: &mut impl Amm, onchain_state: &AccountMap) -> anyhow::R
     amm.update(onchain_state)
 }
 
-fn saam_to_ix(
+fn rem_jup_placeholder(accounts: &mut Vec<AccountMeta>) {
+    accounts.retain(|a| a.pubkey != *CONST_PUBKEYS.jup_prog());
+}
+
+fn user_to_signer(accounts: &mut [AccountMeta]) {
+    // All sanctum router prog swap instructions have
+    // signer as the first account
+    let user_pk = accounts[0].pubkey;
+    accounts.iter_mut().for_each(|a| {
+        if a.pubkey == user_pk {
+            a.is_signer = true;
+        }
+    });
+}
+
+fn saam_to_ixs(
     amt: u64,
     SwapAndAccountMetas {
         swap,
         account_metas: mut accounts,
     }: SwapAndAccountMetas,
-) -> Instruction {
-    let data = match swap {
-        Swap::StakeDexStakeWrappedSol => StakeWrappedSolIxData::new(amt).to_buf().into(),
-        Swap::StakeDexWithdrawWrappedSol => WithdrawWrappedSolIxData::new(amt).to_buf().into(),
+) -> Vec<Instruction> {
+    match swap {
+        Swap::StakeDexStakeWrappedSol => {
+            let data = StakeWrappedSolIxData::new(amt).to_buf().into();
+            rem_jup_placeholder(&mut accounts);
+            user_to_signer(&mut accounts);
+            vec![Instruction {
+                program_id: sanctum_router_std::SANCTUM_ROUTER_PROGRAM.into(),
+                accounts,
+                data,
+            }]
+        }
+        Swap::StakeDexWithdrawWrappedSol => {
+            let data = WithdrawWrappedSolIxData::new(amt).to_buf().into();
+            rem_jup_placeholder(&mut accounts);
+            user_to_signer(&mut accounts);
+            vec![Instruction {
+                program_id: sanctum_router_std::SANCTUM_ROUTER_PROGRAM.into(),
+                accounts,
+                data,
+            }]
+        }
+        Swap::StakeDexPrefundWithdrawStakeAndDepositStake { bridge_stake_seed } => {
+            let sep_idx = accounts
+                .iter()
+                .position(|a| a.pubkey == *CONST_PUBKEYS.jup_prog())
+                .unwrap();
+            user_to_signer(&mut accounts);
+            let pws = &accounts[..sep_idx];
+            let ds = &accounts[sep_idx + 1..];
+            vec![
+                Instruction {
+                    program_id: sanctum_router_std::SANCTUM_ROUTER_PROGRAM.into(),
+                    accounts: pws.into(),
+                    data: PrefundWithdrawStakeIxData::new(amt, bridge_stake_seed)
+                        .to_buf()
+                        .into(),
+                },
+                Instruction {
+                    program_id: sanctum_router_std::SANCTUM_ROUTER_PROGRAM.into(),
+                    accounts: ds.into(),
+                    data: DepositStakeIxData::new().to_buf().into(),
+                },
+            ]
+        }
         _ => unreachable!(),
-    };
-
-    // Refer to `get_swap_and_account_metas` to view changes
-    // that we made to the vanilla instruction that we need to undo here:
-    // - placeholder account inserted at end
-    // - all is_signer set to false. All sanctum router prog swap instructions have
-    //   signer as the first account
-    accounts.pop();
-    accounts[0].is_signer = true;
-
-    Instruction {
-        program_id: sanctum_router_std::SANCTUM_ROUTER_PROGRAM.into(),
-        accounts,
-        data,
     }
 }
 

@@ -5,6 +5,7 @@
 use solana_pubkey::Pubkey;
 
 pub mod jup;
+pub mod reserve;
 pub mod router;
 pub mod spl;
 

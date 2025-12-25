@@ -8,5 +8,4 @@ mod utils;
 
 pub use consts::*;
 pub use sol::*;
-// TODO: uncomment when ready
-// pub use stake::*;
+pub use stake::*;

@@ -23,7 +23,7 @@ const WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
 };
 
 #[test]
-fn stake_wrapped_sol_bsol_fixture_basic() {
+fn sws_bsol_fixture_basic() {
     expect![[r#"
         Quote {
             in_amount: 1000000000,
@@ -46,7 +46,7 @@ fn stake_wrapped_sol_bsol_fixture_basic() {
 }
 
 #[test]
-fn withdraw_wrapped_sol_bsol_fixture_basic() {
+fn wws_bsol_fixture_basic() {
     expect![[r#"
         Quote {
             in_amount: 1000000000,
@@ -69,7 +69,7 @@ fn withdraw_wrapped_sol_bsol_fixture_basic() {
 }
 
 #[test]
-fn verify_withdraw_wrapped_sol_update_cycles() {
+fn verify_wws_update_cycles() {
     let amm: SplStakePoolSolAmm =
         init_amm(&ALL_FIXTURES, &AMM_CONTEXT, CONST_PUBKEYS.bsol_stake_pool());
     expect!["require 1 more update(s)"].assert_eq(

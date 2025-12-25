@@ -15,6 +15,7 @@ pub struct ConstKeys<T> {
     pub stake_prog: T,
     pub spl_prog: T,
     pub sanctum_router_prog: T,
+    pub jup_prog: T,
 
     pub wsol_mint: T,
 
@@ -26,7 +27,7 @@ pub struct ConstKeys<T> {
 impl<T: Copy> ConstKeys<T> {
     #[inline]
     pub const fn memset(v: T) -> Self {
-        Self([v; CONST_KEYS_LEN])
+        Self([v; _])
     }
 }
 
@@ -36,6 +37,7 @@ pub const CONST_KEYS_STR: ConstKeys<&'static str> = ConstKeys::memset("")
     .const_with_stake_prog("Stake11111111111111111111111111111111111111")
     .const_with_spl_prog("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuHy")
     .const_with_sanctum_router_prog("stkitrT1Uoy18Dk1fTrgPw8W6MVzoCfYoAFT4MLsmhq")
+    .const_with_jup_prog("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4")
     .const_with_wsol_mint("So11111111111111111111111111111111111111112")
     .const_with_bsol_mint("bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1")
     .const_with_bsol_stake_pool("stk9ApL5HeVAwPLr3TLhDXdZS8ptVu7zp6ov8HFDuMi");

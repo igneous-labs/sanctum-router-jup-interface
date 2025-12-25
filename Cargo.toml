@@ -20,6 +20,7 @@ generic-array-struct = { version = "^0.3.2", default-features = false }
 glob = { version = "^0.3", default-features = false }
 jupiter-amm-interface = { version = "^0.6", default-features = false }
 lazy_static = { version = "^1", default-features = false }
+rand = { version = "^0.8", default-features = false } # vers contraint based on jupiter-amm-interface's rust_decimal's
 rust_decimal = { version = "^1.36.0", default-features = false } # vers constraint based on jupiter-amm-interface
 sanctum-spl-token-core = { git = "https://github.com/igneous-labs/sanctum-spl-token-sdk.git", branch = "master", default-features = false }
 serde = { version = "^1", default-features = false }

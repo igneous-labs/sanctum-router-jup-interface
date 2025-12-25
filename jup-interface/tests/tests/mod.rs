@@ -1,1 +1,2 @@
 mod sol;
+mod stake;

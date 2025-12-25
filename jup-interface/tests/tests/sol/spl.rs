@@ -1,9 +1,9 @@
 use expect_test::expect;
-use jupiter_amm_interface::{QuoteParams, SwapMode};
+use jupiter_amm_interface::{Amm, QuoteParams, SwapMode};
 use sanctum_router_jup_interface::SplStakePoolSolAmm;
 use test_utils::{ALL_FIXTURES, CONST_PUBKEYS, SVM};
 
-use crate::common::{swap_test, SwapUserKeyedAccounts};
+use crate::common::{init_amm, swap_test, SwapUserKeyedAccounts, AMM_CONTEXT};
 
 const STAKE_WRAPPED_SOL_UPDATE_CYCLES: usize = 0;
 
@@ -66,4 +66,15 @@ fn withdraw_wrapped_sol_bsol_fixture_basic() {
             WITHDRAW_WRAPPED_SOL_UPDATE_CYCLES,
         )
     }));
+}
+
+#[test]
+fn verify_withdraw_wrapped_sol_update_cycles() {
+    let amm: SplStakePoolSolAmm =
+        init_amm(&ALL_FIXTURES, &AMM_CONTEXT, CONST_PUBKEYS.bsol_stake_pool());
+    expect!["not yet updated"].assert_eq(
+        &amm.quote(&WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS)
+            .unwrap_err()
+            .to_string(),
+    );
 }

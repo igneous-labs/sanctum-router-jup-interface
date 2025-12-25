@@ -1,8 +1,8 @@
 use anyhow::anyhow;
 use generic_array_struct::generic_array_struct;
 use jupiter_amm_interface::{
-    AccountMap, Amm, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas, SwapMode,
-    SwapParams,
+    AccountMap, Amm, AmmContext, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas,
+    SwapMode, SwapParams,
 };
 use sanctum_router_std::{StakeWrappedSolIxData, WithdrawWrappedSolIxData};
 use solana_account::Account;
@@ -12,7 +12,7 @@ use test_utils::{mock_signer, mock_tokenkeg_acc, mollusk_exec, ExecOk, Mollusk};
 
 use crate::common::{AMM_CONTEXT, TEST_SIGNER, TOKEN_ACC_1, TOKEN_ACC_2};
 
-#[generic_array_struct(builder destr trymap pub)]
+#[generic_array_struct(destr pub)]
 #[derive(Default)]
 #[repr(transparent)]
 pub struct SwapUserAccs<T> {
@@ -55,6 +55,8 @@ impl SwapUserKeyedAccounts {
 /// - swap
 /// - mollusk execute swap
 /// - assert amount in and out matches quote
+///
+/// Returns quoted [`Quote`] if test passes
 pub fn swap_test<A: Amm>(
     svm: &Mollusk,
     qp: &QuoteParams,
@@ -65,17 +67,7 @@ pub fn swap_test<A: Amm>(
     // is ready for use
     n_update_cycles: usize,
 ) -> Quote {
-    // init
-    let (key, account) = onchain_state.get_key_value(init_pk).unwrap();
-    let mut amm = A::from_keyed_account(
-        &KeyedAccount {
-            key: *key,
-            account: account.clone(),
-            params: None,
-        },
-        &AMM_CONTEXT,
-    )
-    .unwrap();
+    let mut amm: A = init_amm(onchain_state, &AMM_CONTEXT, init_pk);
 
     (0..n_update_cycles).for_each(|_| update_cycle(&mut amm, onchain_state).unwrap());
 
@@ -135,7 +127,20 @@ pub fn swap_test<A: Amm>(
     quote
 }
 
-fn update_cycle(amm: &mut impl Amm, onchain_state: &AccountMap) -> anyhow::Result<()> {
+pub fn init_amm<A: Amm>(am: &AccountMap, ctx: &AmmContext, init_pk: &Pubkey) -> A {
+    let (key, account) = am.get_key_value(init_pk).unwrap();
+    A::from_keyed_account(
+        &KeyedAccount {
+            key: *key,
+            account: account.clone(),
+            params: None,
+        },
+        ctx,
+    )
+    .unwrap()
+}
+
+pub fn update_cycle(amm: &mut impl Amm, onchain_state: &AccountMap) -> anyhow::Result<()> {
     let accs = amm.get_accounts_to_update();
 
     accs.iter().try_for_each(|a| {

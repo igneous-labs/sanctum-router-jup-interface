@@ -25,7 +25,7 @@ pub type SwapUserKeyedAccounts = SwapUserAccs<(Pubkey, Account)>;
 /// The whole point of it all:
 ///
 /// - inits Amm struct
-/// - runs 2x update cycle
+/// - runs n update cycles
 /// - quote
 /// - swap
 /// - mollusk execute swap
@@ -129,7 +129,7 @@ fn saam_to_ix(
     // Refer to `get_swap_and_account_metas` to view changes
     // that we made to the vanilla instruction that we need to undo here:
     // - placeholder account inserted at end
-    // - all is_signer set to false. All sanctum route rprog swap instructions have
+    // - all is_signer set to false. All sanctum router prog swap instructions have
     //   signer as the first account
     accounts.pop();
     accounts[0].is_signer = true;

@@ -2616,7 +2616,7 @@ dependencies = [
 [[package]]
 name = "sanctum-router-core"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#724f33481aba9f08318119224b7e3c61a00f845e"
+source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#3220f1620ec1cb60a2538d6607abff1a926c9644"
 dependencies = [
  "const-crypto",
  "generic-array-struct",
@@ -2647,7 +2647,7 @@ dependencies = [
 [[package]]
 name = "sanctum-router-std"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#724f33481aba9f08318119224b7e3c61a00f845e"
+source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#3220f1620ec1cb60a2538d6607abff1a926c9644"
 dependencies = [
  "sanctum-router-core",
 ]

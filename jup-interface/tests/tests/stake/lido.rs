@@ -15,7 +15,7 @@ const TO_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
 };
 
 #[test]
-fn psvs_lido_wsol_fixture_basic() {
+fn psvs_stsol_wsol_fixture_basic() {
     expect![[r#"
         Quote {
             in_amount: 1000000000,

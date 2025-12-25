@@ -17,7 +17,7 @@ const STAKE_WRAPPED_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
 };
 
 #[test]
-fn stake_wrapped_sol_msol_fixture_basic() {
+fn sws_msol_fixture_basic() {
     expect![[r#"
         Quote {
             in_amount: 1000000000,

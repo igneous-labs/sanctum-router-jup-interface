@@ -1,6 +1,9 @@
-use std::sync::{
-    atomic::{AtomicU64, Ordering},
-    Arc,
+use std::{
+    collections::HashSet,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
 };
 
 use jupiter_amm_interface::{
@@ -321,5 +324,9 @@ impl Amm for SplStakePoolSolAmm {
             (*self.router.stake_pool_program()).into(),
             self.stake_pool_label.to_lowercase(),
         )]
+    }
+
+    fn underlying_liquidities(&self) -> Option<HashSet<Pubkey>> {
+        Some(core::iter::once(self.router.stake_pool().reserve_stake.into()).collect())
     }
 }

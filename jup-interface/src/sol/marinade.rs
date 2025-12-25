@@ -63,10 +63,7 @@ impl Amm for MarinadeSolAmm {
             params,
         }: &KeyedAccount,
         _ctx: &AmmContext,
-    ) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
+    ) -> anyhow::Result<Self> {
         let state = State::borsh_de(account.data.as_slice())?;
         let cap = if marinade_has_staking_cap(&state) {
             StakingCapCtrl::NeedMsolLeg

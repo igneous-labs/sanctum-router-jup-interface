@@ -124,10 +124,7 @@ impl Amm for SplStakePoolSolAmm {
             params,
         }: &KeyedAccount,
         amm_context: &AmmContext,
-    ) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
+    ) -> anyhow::Result<Self> {
         let [stake_pool_program, stake_pool_addr] = [account.owner, *key].map(Pubkey::to_bytes);
         let curr_epoch = amm_context.clock_ref.epoch.clone();
         let (withdraw_authority_program_address, _) =

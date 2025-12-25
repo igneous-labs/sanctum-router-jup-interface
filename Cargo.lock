@@ -2655,6 +2655,7 @@ dependencies = [
  "lazy_static",
  "rust_decimal",
  "sanctum-router-std",
+ "serde_json",
  "solana-account",
  "solana-instruction",
  "solana-pubkey",

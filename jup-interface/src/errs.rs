@@ -20,3 +20,7 @@ pub(crate) fn invalid_pda(name: &str) -> anyhow::Error {
 pub(crate) fn require_more_updates(n_updates_required: usize) -> anyhow::Error {
     anyhow!("require {n_updates_required} more update(s)")
 }
+
+pub(crate) fn invalid_data_err(pk: &Pubkey) -> anyhow::Error {
+    anyhow!("invalid account data for {pk}")
+}

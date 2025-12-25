@@ -7,7 +7,7 @@ pub trait StakeRouter {
     /// stake pool program ID
     fn program_id(&self) -> &[u8; 32];
 
-    fn prog_dep_label(&self) -> &str;
+    fn prog_dep_label(&self) -> String;
 
     /// The main account to fetched on first update
     fn main_state_key(&self) -> &[u8; 32];
@@ -28,7 +28,7 @@ pub trait StakeRouter {
     /// from AmmContext.
     ///
     /// Default impl is assume this is not such a stake pool and no-op
-    fn update_curr_epoch(&self, _curr_epoch: &AtomicU64) {}
+    fn update_curr_epoch(&mut self, _curr_epoch: &AtomicU64) {}
 }
 
 pub trait TryWithdrawStake {

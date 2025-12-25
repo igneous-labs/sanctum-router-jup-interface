@@ -38,9 +38,9 @@ impl StakeRouter for ReserveStakeRouter {
         &UNSTAKE_PROGRAM
     }
 
-    fn prog_dep_label(&self) -> &str {
+    fn prog_dep_label(&self) -> String {
         // current v1 impl
-        "unstake.it"
+        "unstake.it".to_owned()
     }
 
     fn main_state_key(&self) -> &[u8; 32] {

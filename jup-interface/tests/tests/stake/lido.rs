@@ -1,6 +1,6 @@
 use expect_test::expect;
 use jupiter_amm_interface::{QuoteParams, SwapMode};
-use sanctum_router_jup_interface::{LidoStakeRouter, OneWayPair, ReserveStakeRouter};
+use sanctum_router_jup_interface::LidoReserveStakeAmm;
 use sanctum_router_std::{solido_legacy_core::STSOL_MINT_ADDR, NATIVE_MINT};
 use solana_pubkey::Pubkey;
 use test_utils::{ALL_FIXTURES, SVM};
@@ -26,7 +26,7 @@ fn psvs_lido_wsol_fixture_basic() {
         }
     "#]]
     .assert_debug_eq(&SVM.with(|svm| {
-        swap_test::<OneWayPair<LidoStakeRouter, ReserveStakeRouter>>(
+        swap_test::<LidoReserveStakeAmm>(
             svm,
             &TO_SOL_QUOTE_PARAMS,
             &ALL_FIXTURES,

@@ -25,7 +25,7 @@ use crate::{
     },
     prefund_params,
     stake::traits::StakeRouter,
-    ReserveRouterPpf,
+    ReserveRouter,
 };
 
 pub fn prep_underlying_liquidities(
@@ -128,7 +128,7 @@ pub fn deposit_stake_pre_keys<'a>(
 pub fn try_prefund_swap_via_stake_metas(
     w: &impl WithdrawStake,
     d: &impl DepositStake,
-    r: &ReserveRouterPpf,
+    r: &ReserveRouter,
     sp: &SwapParams,
     bridge_stake_seed: u32,
     deposit_sr_fee_token_acc: &[u8; 32],

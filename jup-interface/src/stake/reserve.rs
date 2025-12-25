@@ -13,6 +13,9 @@ use crate::{
     utils::try_get_acc,
 };
 
+pub type ReserveRouter =
+    sanctum_router_std::ReserveRouter<fn(&[&[u8]], &[u8; 32]) -> Option<([u8; 32], u8)>>;
+
 pub type ReserveRouterPpf =
     sanctum_router_std::ReserveRouterPpf<fn(&[&[u8]], &[u8; 32]) -> Option<([u8; 32], u8)>>;
 

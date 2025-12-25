@@ -1,9 +1,9 @@
 use std::{
-    collections::HashMap,
     fs::File,
     path::{Path, PathBuf},
 };
 
+use ahash::HashMap;
 use glob::glob;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -11,9 +11,13 @@ use solana_account::Account;
 use solana_account_decoder_client_types::UiAccount;
 use solana_pubkey::Pubkey;
 
-use crate::{mock_clock, mock_prog_acc, CONST_PUBKEYS};
+use crate::{mock_prog_acc, CONST_PUBKEYS};
 
-pub const FIXTURE_PROGRAMS: [(&str, Pubkey); 0] = [];
+pub const FIXTURE_PROGRAMS: [(&str, Pubkey); 3] = [
+    ("stake", *CONST_PUBKEYS.stake_prog()),
+    ("stake-pool", *CONST_PUBKEYS.spl_prog()),
+    ("sanctum-router", *CONST_PUBKEYS.sanctum_router_prog()),
+];
 
 lazy_static! {
     pub static ref ALL_FIXTURES: HashMap<Pubkey, Account> = {
@@ -29,23 +33,12 @@ lazy_static! {
                 )
             }))
             .chain([
-                (*CONST_PUBKEYS.sysvar_clock(), mock_clock()),
                 mollusk_svm_programs_token::token::keyed_account(),
                 mollusk_svm_programs_token::associated_token::keyed_account(),
                 mollusk_svm::program::keyed_account_for_system_program(),
             ])
             .collect()
     };
-}
-
-/// Continues if fixture account not found for given pubkey
-pub fn fixtures_accounts_opt_cloned(
-    itr: impl IntoIterator<Item = impl Into<Pubkey>>,
-) -> impl Iterator<Item = (Pubkey, Account)> {
-    itr.into_iter().filter_map(|pk| {
-        let (k, v) = ALL_FIXTURES.get_key_value(&pk.into())?;
-        Some((*k, v.clone()))
-    })
 }
 
 /// Copied from https://stackoverflow.com/a/74942075/5057425

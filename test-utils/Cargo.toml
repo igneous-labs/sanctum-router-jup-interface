@@ -6,11 +6,13 @@ version.workspace = true
 publish = false
 
 [dependencies]
+ahash = { workspace = true }
 generic-array-struct = { workspace = true }
 glob = { workspace = true }
 lazy_static = { workspace = true }
 mollusk-svm = { workspace = true }
 mollusk-svm-programs-token = { workspace = true, features = ["associated-token", "token"] }
+sanctum-spl-token-core = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 solana-account = { workspace = true }

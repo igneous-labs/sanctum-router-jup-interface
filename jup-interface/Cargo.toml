@@ -9,17 +9,16 @@ include = ["src/**/*", "Cargo.toml"]
 anyhow = { workspace = true }
 jupiter-amm-interface = { workspace = true }
 rust_decimal = { workspace = true }
-serde_json = { workspace = true }
+sanctum-router-std = { workspace = true }
 
 # solana-deps
 # try not to use solana-sdk so that we can easily remove it in the future
-solana-account = { workspace = true }
 solana-instruction = { workspace = true }
 solana-pubkey = { workspace = true }
-solana-sha256-hasher = { workspace = true }
 
 [dev-dependencies]
+expect-test = { workspace = true }
 generic-array-struct = { workspace = true }
-test-utils = { workspace = true }
 lazy_static = { workspace = true }
-mollusk-svm = { workspace = true }
+solana-account = { workspace = true }
+test-utils = { workspace = true }

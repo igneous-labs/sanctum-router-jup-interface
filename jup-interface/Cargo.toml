@@ -10,9 +10,11 @@ anyhow = { workspace = true }
 jupiter-amm-interface = { workspace = true }
 rust_decimal = { workspace = true }
 sanctum-router-std = { workspace = true }
+serde_json = { workspace = true }
 
 # solana-deps
 # try not to use solana-sdk so that we can easily remove it in the future
+solana-account = { workspace = true }
 solana-instruction = { workspace = true }
 solana-pubkey = { workspace = true }
 

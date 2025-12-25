@@ -38,6 +38,11 @@ solana-account-decoder-client-types = { version = "^2", default-features = false
 solana-instruction = { version = "^2.3.0", default-features = false }
 solana-program-error = { version = "^2", default-features = false }
 solana-pubkey = { version = "^2.2.1", default-features = false }
+# TODO: there is some absolute solana v2 bs affecting compile-times:
+# mollusk-svm -> agave-precompiles -> openssl
+#                                 |-> solana-secp256r1-program -> openssl
+# resulting in building of openssl-sys which takes a long time.
+# This will all be over when jup upgrades to solana v3
 
 # sanctum router crates
 sanctum-router-std = { git = "https://github.com/igneous-labs/sanctum-router-sdk.git", branch = "master", default-features = false }

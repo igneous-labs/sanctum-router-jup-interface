@@ -3,37 +3,36 @@ use std::sync::{
     Arc,
 };
 
-use anyhow::anyhow;
 use jupiter_amm_interface::{
     AccountMap, Amm, AmmContext, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas,
     SwapMode, SwapParams,
 };
 use sanctum_router_std::{
-    sanctum_spl_stake_pool_core::StakePool, solido_legacy_core::TOKENKEG_PROGRAM, DepositSol,
-    DepositSolQuoter, DepositSolSufAccs, SplDepositSolQuoter, SplRouterDepositSol, SplRouterSol,
-    SplSolSufAccs, SplWithdrawSolQuoter, StakeWrappedSolPrefixAccs, StakeWrappedSolPrefixAccsDestr,
-    WithdrawSol, WithdrawSolQuoter, WithdrawSolSufAccs, WithdrawWrappedSolPrefixAccs,
-    WithdrawWrappedSolPrefixAccsDestr, NATIVE_MINT, SANCTUM_ROUTER_PROGRAM, SOL_BRIDGE_OUT,
+    sanctum_spl_stake_pool_core::StakePool, DepositSol, DepositSolQuoter, DepositSolSufAccs,
+    SplDepositSolQuoter, SplRouterDepositSol, SplRouterSol, SplSolSufAccs, SplWithdrawSolQuoter,
+    WithdrawSol, WithdrawSolQuoter, WithdrawSolSufAccs, NATIVE_MINT, SANCTUM_ROUTER_PROGRAM,
     SPL_DEPOSIT_SOL_IX_SUFFIX_ACCS_LEN, SPL_WITHDRAW_SOL_IX_SUFFIX_ACCS_LEN,
-    STAKE_WRAPPED_SOL_PREFIX_ACCS_LEN, STAKE_WRAPPED_SOL_PREFIX_IS_WRITER, SYSTEM_PROGRAM,
-    WITHDRAW_WRAPPED_SOL_PREFIX_ACCS_LEN, WITHDRAW_WRAPPED_SOL_PREFIX_IS_WRITER, WSOL_BRIDGE_IN,
+    STAKE_WRAPPED_SOL_PREFIX_ACCS_LEN, STAKE_WRAPPED_SOL_PREFIX_IS_WRITER,
+    WITHDRAW_WRAPPED_SOL_PREFIX_ACCS_LEN, WITHDRAW_WRAPPED_SOL_PREFIX_IS_WRITER,
 };
 use solana_pubkey::Pubkey;
 
 use crate::{
     conv::{conv_token_quote, conv_withdraw_sol_quote, keys_writable_zipped_to_metas},
-    errs::{acc_missing_err, exact_out_unsupported_err, invalid_pda, unsupported_mints},
+    errs::{exact_out_unsupported_err, invalid_pda, require_more_updates, unsupported_mints},
     pda::{
         jup::find_stake_pool_amm_key, router::find_fee_token_account_pda,
         spl::find_withdraw_auth_pda,
     },
+    sol::common::{stake_wrapped_sol_prefix_keys, withdraw_wrapped_sol_prefix_keys},
+    utils::{mk_stake_pool_label, try_get_acc},
     TEMPORARY_JUP_AMM_LABEL,
 };
 
 #[derive(Debug, Clone)]
 pub struct SplStakePoolSolAmm {
     pub curr_epoch: Arc<AtomicU64>,
-    pub state: SplStakePoolSolState,
+    pub router: SplStakePoolSolState,
     pub stake_pool_label: String,
 
     // Cached PDAs below
@@ -58,7 +57,7 @@ impl SplStakePoolSolAmm {
     }
 
     pub fn deposit_sol_quoter(&self) -> SplDepositSolQuoter<'_> {
-        let base = cmn_mthd!(&self.state, deposit_sol_quoter);
+        let base = cmn_mthd!(&self.router, deposit_sol_quoter);
         SplDepositSolQuoter {
             curr_epoch: self.load_curr_epoch(),
             ..base
@@ -66,8 +65,8 @@ impl SplStakePoolSolAmm {
     }
 
     pub fn try_withdraw_sol_quoter(&self) -> anyhow::Result<SplWithdrawSolQuoter<'_>> {
-        let base = match &self.state {
-            SplStakePoolSolState::Init(_) => return Err(anyhow!("not yet updated")),
+        let base = match &self.router {
+            SplStakePoolSolState::Init(_) => return Err(require_more_updates(1)),
             SplStakePoolSolState::Full(s) => s.withdraw_sol_quoter(),
         };
         Ok(SplWithdrawSolQuoter {
@@ -77,7 +76,7 @@ impl SplStakePoolSolAmm {
     }
 
     pub const fn spl_sol_suf_accs(&self) -> SplSolSufAccs<'_> {
-        cmn_mthd!(&self.state, spl_sol_suf_accs)
+        cmn_mthd!(&self.router, spl_sol_suf_accs)
     }
 }
 
@@ -125,10 +124,7 @@ impl Amm for SplStakePoolSolAmm {
             params,
         }: &KeyedAccount,
         amm_context: &AmmContext,
-    ) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
+    ) -> anyhow::Result<Self> {
         let [stake_pool_program, stake_pool_addr] = [account.owner, *key].map(Pubkey::to_bytes);
         let curr_epoch = amm_context.clock_ref.epoch.clone();
         let (withdraw_authority_program_address, _) =
@@ -146,13 +142,7 @@ impl Amm for SplStakePoolSolAmm {
         let pool_mint_sr_fee_token_acc = p?.0;
         let wsol_sr_fee_token_acc = w?.0;
 
-        let stake_pool_label = params
-            .as_ref()
-            .map_or_else(|| None, |v| v.as_str())
-            .map_or_else(
-                || format!("{} stake pool", Pubkey::from(stake_pool.pool_mint)),
-                |token_name| format!("{token_name} stake pool"),
-            );
+        let stake_pool_label = mk_stake_pool_label(&stake_pool.pool_mint.into(), params);
 
         Ok(Self {
             curr_epoch,
@@ -160,7 +150,7 @@ impl Amm for SplStakePoolSolAmm {
             pool_mint_sr_fee_token_acc,
             wsol_sr_fee_token_acc,
             stake_pool_label,
-            state: SplStakePoolSolState::Init(SplRouterDepositSol {
+            router: SplStakePoolSolState::Init(SplRouterDepositSol {
                 stake_pool_program,
                 stake_pool_addr,
                 withdraw_authority_program_address,
@@ -184,25 +174,29 @@ impl Amm for SplStakePoolSolAmm {
     }
 
     fn get_reserve_mints(&self) -> Vec<Pubkey> {
-        [NATIVE_MINT.into(), self.state.stake_pool().pool_mint.into()].into()
+        [
+            NATIVE_MINT.into(),
+            self.router.stake_pool().pool_mint.into(),
+        ]
+        .into()
     }
 
     fn get_accounts_to_update(&self) -> Vec<Pubkey> {
         [
-            (*self.state.stake_pool_addr()).into(),
-            self.state.stake_pool().reserve_stake.into(),
+            (*self.router.stake_pool_addr()).into(),
+            self.router.stake_pool().reserve_stake.into(),
         ]
         .into()
     }
 
     fn update(&mut self, am: &AccountMap) -> anyhow::Result<()> {
         let [sp, rsv] = [
-            *self.state.stake_pool_addr(),
-            self.state.stake_pool().reserve_stake,
+            *self.router.stake_pool_addr(),
+            self.router.stake_pool().reserve_stake,
         ]
         .map(|addr| {
             let addr = addr.into();
-            am.get(&addr).ok_or_else(|| acc_missing_err(&addr))
+            try_get_acc(am, &addr)
         });
         let sp = sp?;
         let rsv = rsv?;
@@ -211,15 +205,15 @@ impl Amm for SplStakePoolSolAmm {
         let reserve_stake_lamports = rsv.lamports;
 
         let new_state = SplStakePoolSolState::Full(SplRouterSol {
-            stake_pool_program: *self.state.stake_pool_program(),
-            stake_pool_addr: *self.state.stake_pool_addr(),
-            withdraw_authority_program_address: *self.state.withdraw_authority_program_address(),
+            stake_pool_program: *self.router.stake_pool_program(),
+            stake_pool_addr: *self.router.stake_pool_addr(),
+            withdraw_authority_program_address: *self.router.withdraw_authority_program_address(),
             stake_pool,
             reserve_stake_lamports,
             curr_epoch: 0,
         });
 
-        self.state = new_state;
+        self.router = new_state;
 
         Ok(())
     }
@@ -236,7 +230,7 @@ impl Amm for SplStakePoolSolAmm {
         if matches!(swap_mode, SwapMode::ExactOut) {
             return Err(exact_out_unsupported_err());
         }
-        let [wsol, pool_mint] = [NATIVE_MINT, self.state.stake_pool().pool_mint].map(Pubkey::from);
+        let [wsol, pool_mint] = [NATIVE_MINT, self.router.stake_pool().pool_mint].map(Pubkey::from);
         if *input_mint == wsol && *output_mint == pool_mint {
             Ok(conv_token_quote(
                 pool_mint,
@@ -258,35 +252,22 @@ impl Amm for SplStakePoolSolAmm {
         let SwapParams {
             source_mint,
             destination_mint,
-            source_token_account,
-            destination_token_account,
-            token_transfer_authority,
             ..
         } = sp;
-        let [wsol, pool_mint] = [NATIVE_MINT, self.state.stake_pool().pool_mint].map(Pubkey::from);
+        let [wsol, pool_mint] = [NATIVE_MINT, self.router.stake_pool().pool_mint].map(Pubkey::from);
         if *source_mint == wsol && *destination_mint == pool_mint {
-            let pre_keys = StakeWrappedSolPrefixAccs::from_destr(StakeWrappedSolPrefixAccsDestr {
-                user: token_transfer_authority.as_array(),
-                inp_wsol: source_token_account.as_array(),
-                out_token: destination_token_account.as_array(),
-                wsol_bridge_in: &WSOL_BRIDGE_IN,
-                sol_bridge_out: &SOL_BRIDGE_OUT,
-                out_fee_token: &self.pool_mint_sr_fee_token_acc,
-                out_mint: destination_mint.as_array(),
-                wsol_mint: source_mint.as_array(),
-                token_program: &TOKENKEG_PROGRAM,
-                system_program: &SYSTEM_PROGRAM,
-            });
+            let pre_keys = stake_wrapped_sol_prefix_keys(sp, &self.pool_mint_sr_fee_token_acc);
             let pre = pre_keys
                 .0
                 .into_iter()
                 .zip(STAKE_WRAPPED_SOL_PREFIX_IS_WRITER.0);
+
             let suf_accs = self.spl_sol_suf_accs();
             let suf_keys = DepositSolSufAccs::suffix_accounts(&suf_accs);
             let suf_writable = DepositSolSufAccs::suffix_is_writable(&suf_accs);
             let suf = suf_keys.0.iter().zip(suf_writable.0);
-            let mut account_metas = keys_writable_zipped_to_metas(pre.chain(suf));
 
+            let mut account_metas = keys_writable_zipped_to_metas(pre.chain(suf));
             account_metas.push(sp.placeholder_account_meta());
 
             Ok(SwapAndAccountMetas {
@@ -294,26 +275,18 @@ impl Amm for SplStakePoolSolAmm {
                 account_metas,
             })
         } else if *source_mint == pool_mint && *destination_mint == wsol {
-            let pre_keys =
-                WithdrawWrappedSolPrefixAccs::from_destr(WithdrawWrappedSolPrefixAccsDestr {
-                    user: token_transfer_authority.as_array(),
-                    wsol_mint: destination_mint.as_array(),
-                    token_program: &TOKENKEG_PROGRAM,
-                    inp_token: source_token_account.as_array(),
-                    out_wsol: destination_token_account.as_array(),
-                    wsol_fee_token: &self.wsol_sr_fee_token_acc,
-                    inp_mint: source_mint.as_array(),
-                });
+            let pre_keys = withdraw_wrapped_sol_prefix_keys(sp, &self.wsol_sr_fee_token_acc);
             let pre = pre_keys
                 .0
                 .into_iter()
                 .zip(WITHDRAW_WRAPPED_SOL_PREFIX_IS_WRITER.0);
+
             let suf_accs = self.spl_sol_suf_accs();
             let suf_keys = WithdrawSolSufAccs::suffix_accounts(&suf_accs);
             let suf_writable = WithdrawSolSufAccs::suffix_is_writable(&suf_accs);
             let suf = suf_keys.0.iter().zip(suf_writable.0);
-            let mut account_metas = keys_writable_zipped_to_metas(pre.chain(suf));
 
+            let mut account_metas = keys_writable_zipped_to_metas(pre.chain(suf));
             account_metas.push(sp.placeholder_account_meta());
 
             Ok(SwapAndAccountMetas {
@@ -345,7 +318,7 @@ impl Amm for SplStakePoolSolAmm {
 
     fn program_dependencies(&self) -> Vec<(Pubkey, String)> {
         vec![(
-            (*self.state.stake_pool_program()).into(),
+            (*self.router.stake_pool_program()).into(),
             self.stake_pool_label.to_lowercase(),
         )]
     }

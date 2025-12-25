@@ -12,6 +12,7 @@ glob = { workspace = true }
 lazy_static = { workspace = true }
 mollusk-svm = { workspace = true }
 mollusk-svm-programs-token = { workspace = true, features = ["associated-token", "token"] }
+sanctum-router-std = { workspace = true }
 sanctum-spl-token-core = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

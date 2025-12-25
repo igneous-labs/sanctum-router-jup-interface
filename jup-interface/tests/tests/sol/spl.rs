@@ -1,3 +1,4 @@
+use expect_test::expect;
 use jupiter_amm_interface::{QuoteParams, SwapMode};
 use sanctum_router_jup_interface::SplStakePoolSolAmm;
 use test_utils::{ALL_FIXTURES, CONST_PUBKEYS, SVM};
@@ -23,7 +24,16 @@ const WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
 
 #[test]
 fn stake_wrapped_sol_bsol_fixture_basic() {
-    SVM.with(|svm| {
+    expect![[r#"
+        Quote {
+            in_amount: 1000000000,
+            out_amount: 816729365,
+            fee_amount: 0,
+            fee_mint: bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1,
+            fee_pct: 0,
+        }
+    "#]]
+    .assert_debug_eq(&SVM.with(|svm| {
         swap_test::<SplStakePoolSolAmm>(
             svm,
             &STAKE_WRAPPED_SOL_QUOTE_PARAMS,
@@ -32,12 +42,21 @@ fn stake_wrapped_sol_bsol_fixture_basic() {
             SwapUserKeyedAccounts::from_qp(&STAKE_WRAPPED_SOL_QUOTE_PARAMS),
             STAKE_WRAPPED_SOL_UPDATE_CYCLES,
         )
-    });
+    }));
 }
 
 #[test]
 fn withdraw_wrapped_sol_bsol_fixture_basic() {
-    SVM.with(|svm| {
+    expect![[r#"
+        Quote {
+            in_amount: 1000000000,
+            out_amount: 1223049081,
+            fee_amount: 1122317,
+            fee_mint: So11111111111111111111111111111111111111112,
+            fee_pct: 0.000916797273513819,
+        }
+    "#]]
+    .assert_debug_eq(&SVM.with(|svm| {
         swap_test::<SplStakePoolSolAmm>(
             svm,
             &WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS,
@@ -46,5 +65,5 @@ fn withdraw_wrapped_sol_bsol_fixture_basic() {
             SwapUserKeyedAccounts::from_qp(&WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS),
             WITHDRAW_WRAPPED_SOL_UPDATE_CYCLES,
         )
-    });
+    }));
 }

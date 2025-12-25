@@ -1,7 +1,8 @@
 use anyhow::anyhow;
 use generic_array_struct::generic_array_struct;
 use jupiter_amm_interface::{
-    AccountMap, Amm, KeyedAccount, QuoteParams, Swap, SwapAndAccountMetas, SwapMode, SwapParams,
+    AccountMap, Amm, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas, SwapMode,
+    SwapParams,
 };
 use sanctum_router_std::{StakeWrappedSolIxData, WithdrawWrappedSolIxData};
 use solana_account::Account;
@@ -63,7 +64,7 @@ pub fn swap_test<A: Amm>(
     // number of update cycles before this Amm
     // is ready for use
     n_update_cycles: usize,
-) {
+) -> Quote {
     // init
     let (key, account) = onchain_state.get_key_value(init_pk).unwrap();
     let mut amm = A::from_keyed_account(
@@ -130,6 +131,8 @@ pub fn swap_test<A: Amm>(
         user_keys.out_token_acc(),
         quote.out_amount.into(),
     );
+
+    quote
 }
 
 fn update_cycle(amm: &mut impl Amm, onchain_state: &AccountMap) -> anyhow::Result<()> {

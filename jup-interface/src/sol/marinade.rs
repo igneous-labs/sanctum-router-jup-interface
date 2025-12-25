@@ -34,7 +34,7 @@ pub enum StakingCapCtrl {
 ///   required ([`Self::has_staking_cap`])
 #[derive(Debug, Clone)]
 pub struct MarinadeSolAmm {
-    pub cap: StakingCapCtrl,
+    pub cap_ctrl: StakingCapCtrl,
     pub router: MarinadeRouterSol,
     pub stake_pool_label: String,
 
@@ -82,7 +82,7 @@ impl Amm for MarinadeSolAmm {
         let stake_pool_label = mk_stake_pool_label(&msol, params);
 
         Ok(Self {
-            cap,
+            cap_ctrl: cap,
             router: MarinadeRouterSol {
                 state,
                 msol_leg_balance: 0,
@@ -133,7 +133,7 @@ impl Amm for MarinadeSolAmm {
         if self.has_staking_cap() {
             self.router.msol_leg_balance = try_token_acc_amt(am, &LIQ_POOL_MSOL_LEG_PUBKEY.into())?;
         }
-        self.cap = StakingCapCtrl::Rdy;
+        self.cap_ctrl = StakingCapCtrl::Rdy;
 
         Ok(())
     }
@@ -150,7 +150,7 @@ impl Amm for MarinadeSolAmm {
         if matches!(swap_mode, SwapMode::ExactOut) {
             return Err(exact_out_unsupported_err());
         }
-        if !matches!(self.cap, StakingCapCtrl::Rdy) {
+        if !matches!(self.cap_ctrl, StakingCapCtrl::Rdy) {
             return Err(require_more_updates(1));
         }
         let [wsol, msol] = [NATIVE_MINT, MSOL_MINT_ADDR].map(Pubkey::from);

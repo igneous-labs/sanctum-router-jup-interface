@@ -16,3 +16,7 @@ pub(crate) fn unsupported_mints(inp: &Pubkey, out: &Pubkey) -> anyhow::Error {
 pub(crate) fn invalid_pda(name: &str) -> anyhow::Error {
     anyhow!("could not find PDA for {name}")
 }
+
+pub(crate) fn require_more_updates(n_updates_required: usize) -> anyhow::Error {
+    anyhow!("require {n_updates_required} more update(s)")
+}

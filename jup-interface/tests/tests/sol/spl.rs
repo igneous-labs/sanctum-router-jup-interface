@@ -72,7 +72,7 @@ fn withdraw_wrapped_sol_bsol_fixture_basic() {
 fn verify_withdraw_wrapped_sol_update_cycles() {
     let amm: SplStakePoolSolAmm =
         init_amm(&ALL_FIXTURES, &AMM_CONTEXT, CONST_PUBKEYS.bsol_stake_pool());
-    expect!["not yet updated"].assert_eq(
+    expect!["require 1 more update(s)"].assert_eq(
         &amm.quote(&WITHDRAW_WRAPPED_SOL_QUOTE_PARAMS)
             .unwrap_err()
             .to_string(),

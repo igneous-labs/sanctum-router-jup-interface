@@ -3,7 +3,6 @@ use std::sync::{
     Arc,
 };
 
-use anyhow::anyhow;
 use jupiter_amm_interface::{
     AccountMap, Amm, AmmContext, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas,
     SwapMode, SwapParams,
@@ -22,7 +21,10 @@ use solana_pubkey::Pubkey;
 
 use crate::{
     conv::{conv_token_quote, conv_withdraw_sol_quote, keys_writable_zipped_to_metas},
-    errs::{acc_missing_err, exact_out_unsupported_err, invalid_pda, unsupported_mints},
+    errs::{
+        acc_missing_err, exact_out_unsupported_err, invalid_pda, require_more_updates,
+        unsupported_mints,
+    },
     pda::{
         jup::find_stake_pool_amm_key, router::find_fee_token_account_pda,
         spl::find_withdraw_auth_pda,
@@ -67,7 +69,7 @@ impl SplStakePoolSolAmm {
 
     pub fn try_withdraw_sol_quoter(&self) -> anyhow::Result<SplWithdrawSolQuoter<'_>> {
         let base = match &self.state {
-            SplStakePoolSolState::Init(_) => return Err(anyhow!("not yet updated")),
+            SplStakePoolSolState::Init(_) => return Err(require_more_updates(1)),
             SplStakePoolSolState::Full(s) => s.withdraw_sol_quoter(),
         };
         Ok(SplWithdrawSolQuoter {

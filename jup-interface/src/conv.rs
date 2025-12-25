@@ -12,7 +12,7 @@ use rust_decimal::{
 };
 use sanctum_router_std::{
     sanctum_u64_ratio::{Floor, Ratio},
-    DepositStakeQuote, Prefund, TokenQuote, WithRouterFee, WithdrawStakeQuote,
+    DepositStakeQuote, Prefund, TokenQuote, WithRouterFee, WithdrawStakeQuote, NATIVE_MINT,
 };
 use solana_instruction::AccountMeta;
 use solana_pubkey::Pubkey;
@@ -60,7 +60,13 @@ pub(crate) fn conv_prefund_swap_via_stake_quote(
     // 3. deposit_to's deposit stake fees (output mint)
     // 4. stakedex's global fees (output mint)
 
-    let d = d.with_router_fee();
+    // router program special cases sanctum-reserve unstake
+    // to not charge additional fees
+    let d = if out_mint == NATIVE_MINT.into() {
+        WithRouterFee::zero(d)
+    } else {
+        d.with_router_fee()
+    };
     let out_fees = d.quote.fee.saturating_add(d.router_fee);
     let out_total_bef_fees = d.quote.out.saturating_add(out_fees);
 

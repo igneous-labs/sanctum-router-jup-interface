@@ -1,8 +1,8 @@
 mod lido;
-mod pool_pair;
+mod pair;
 mod reserve;
 mod traits;
 
 pub use lido::*;
-pub use pool_pair::*;
+pub use pair::*;
 pub use reserve::*;

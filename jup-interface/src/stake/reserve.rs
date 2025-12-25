@@ -13,10 +13,12 @@ use crate::{
     utils::try_get_acc,
 };
 
-pub type ReserveRouter =
-    sanctum_router_std::ReserveRouter<fn(&[&[u8]], &[u8; 32]) -> Option<([u8; 32], u8)>>;
+pub type ReserveRouterPpf =
+    sanctum_router_std::ReserveRouterPpf<fn(&[&[u8]], &[u8; 32]) -> Option<([u8; 32], u8)>>;
 
-pub const fn prefund_params(reserve: &ReserveRouter) -> (PoolUnstakeParams, &FeeEnum) {
+pub const fn prefund_params<F>(
+    reserve: &sanctum_router_std::ReserveRouter<F>,
+) -> (PoolUnstakeParams, &FeeEnum) {
     (
         PoolUnstakeParams {
             pool_incoming_stake: reserve.pool_incoming_stake,
@@ -30,7 +32,7 @@ pub const fn prefund_params(reserve: &ReserveRouter) -> (PoolUnstakeParams, &Fee
 pub enum ReserveStakeRouter {
     #[default]
     Uninit,
-    Init(ReserveRouter),
+    Init(ReserveRouterPpf),
 }
 
 impl StakeRouter for ReserveStakeRouter {
@@ -70,12 +72,14 @@ impl StakeRouter for ReserveStakeRouter {
             .map_err(|_e| invalid_data_err(&PROTOCOL_FEE.into()))?;
         let pool_sol_reserves = psr.lamports;
 
-        *self = Self::Init(ReserveRouter::new(
-            fee,
-            &protocol_fee,
-            &pool,
-            pool_sol_reserves,
-            crate::pda::find_pda,
+        *self = Self::Init(sanctum_router_std::ReserveRouterPpf(
+            sanctum_router_std::ReserveRouter::new(
+                fee,
+                &protocol_fee,
+                &pool,
+                pool_sol_reserves,
+                crate::pda::find_pda,
+            ),
         ));
 
         Ok(())
@@ -87,7 +91,7 @@ impl StakeRouter for ReserveStakeRouter {
 }
 
 impl TryDepositStake for ReserveStakeRouter {
-    type DepositStake = ReserveRouter;
+    type DepositStake = ReserveRouterPpf;
 
     const DEPOSIT_STAKE_SUF_ACCS_LEN: usize = RESERVE_DEPOSIT_STAKE_IX_SUFFIX_ACCS_LEN;
 

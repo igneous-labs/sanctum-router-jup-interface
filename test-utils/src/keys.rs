@@ -27,7 +27,7 @@ pub struct ConstKeys<T> {
 impl<T: Copy> ConstKeys<T> {
     #[inline]
     pub const fn memset(v: T) -> Self {
-        Self([v; CONST_KEYS_LEN])
+        Self([v; _])
     }
 }
 

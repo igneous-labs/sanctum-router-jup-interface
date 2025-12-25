@@ -24,3 +24,7 @@ pub(crate) fn require_more_updates(n_updates_required: usize) -> anyhow::Error {
 pub(crate) fn invalid_data_err(pk: &Pubkey) -> anyhow::Error {
     anyhow!("invalid account data for {pk}")
 }
+
+pub(crate) fn anyhow_unreachable() -> anyhow::Error {
+    anyhow!("unreachable")
+}

@@ -65,7 +65,7 @@ impl Amm for MarinadeSolAmm {
         _ctx: &AmmContext,
     ) -> anyhow::Result<Self> {
         let state = State::borsh_de(account.data.as_slice())?;
-        let cap = if marinade_has_staking_cap(&state) {
+        let cap_ctrl = if marinade_has_staking_cap(&state) {
             StakingCapCtrl::NeedMsolLeg
         } else {
             StakingCapCtrl::Rdy
@@ -79,7 +79,7 @@ impl Amm for MarinadeSolAmm {
         let stake_pool_label = mk_stake_pool_label(&msol, params);
 
         Ok(Self {
-            cap_ctrl: cap,
+            cap_ctrl,
             router: MarinadeRouterSol {
                 state,
                 msol_leg_balance: 0,

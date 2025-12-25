@@ -87,17 +87,13 @@ fn to_accs_vec(am: &HashMap<Pubkey, Account>, ixs: &[Instruction]) -> Vec<(Pubke
     let mut dedup = HashSet::new();
     ixs.iter()
         .flat_map(|ix| ix.accounts.iter().map(|a| a.pubkey))
-        .filter_map(|k| {
-            if dedup.insert(k) {
-                let kv = am.get(&k).map_or_else(
-                    // log missing pks here as required
-                    || (k, Default::default()),
-                    |v| (k, v.clone()),
-                );
-                Some(kv)
-            } else {
-                None
-            }
+        .filter(|&k| dedup.insert(k))
+        .map(|k| {
+            am.get(&k).map_or_else(
+                // log missing pks here as required
+                || (k, Default::default()),
+                |v| (k, v.clone()),
+            )
         })
         .collect()
 }

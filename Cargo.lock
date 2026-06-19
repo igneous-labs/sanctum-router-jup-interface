@@ -2607,7 +2607,7 @@ dependencies = [
 [[package]]
 name = "sanctum-marinade-liquid-staking-core"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/sanctum-marinade-liquid-staking-sdk.git?branch=main#42811b2a2fa7fc35c24e298e06186ef263dbf706"
+source = "git+https://github.com/igneous-labs/sanctum-marinade-liquid-staking-sdk.git?branch=main#0a43c749508951e7e529b03c8bfc15a9d700bee8"
 dependencies = [
  "borsh 1.5.7",
  "const-crypto",
@@ -2632,7 +2632,7 @@ dependencies = [
 [[package]]
 name = "sanctum-router-core"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#5d0911cecf05a8992248156d8ff720d65cca7f13"
+source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#9943ab9a3488fa79a7f86e05f4f4ed6f8de80638"
 dependencies = [
  "const-crypto",
  "generic-array-struct",
@@ -2666,7 +2666,7 @@ dependencies = [
 [[package]]
 name = "sanctum-router-std"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#5d0911cecf05a8992248156d8ff720d65cca7f13"
+source = "git+https://github.com/igneous-labs/sanctum-router-sdk.git?branch=master#9943ab9a3488fa79a7f86e05f4f4ed6f8de80638"
 dependencies = [
  "sanctum-router-core",
 ]
@@ -2674,7 +2674,7 @@ dependencies = [
 [[package]]
 name = "sanctum-spl-stake-pool-core"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/sanctum-spl-stake-pool-sdk.git?branch=master#4157a223f2b4f0a6484375f16d468225fa48482f"
+source = "git+https://github.com/igneous-labs/sanctum-spl-stake-pool-sdk.git?branch=master#5f8d7ea24ce7ea504068ff8781a322c304b58e90"
 dependencies = [
  "borsh 1.5.7",
  "const-crypto",
@@ -4710,7 +4710,7 @@ dependencies = [
 [[package]]
 name = "solido-legacy-core"
 version = "0.1.0"
-source = "git+https://github.com/igneous-labs/solido-legacy-sdk.git?branch=master#16e6658c4504cf59c8d0b9e375dd6f9faec7d663"
+source = "git+https://github.com/igneous-labs/solido-legacy-sdk.git?branch=master#24d3d2081e4539bd587627731934aea303db3ec1"
 dependencies = [
  "borsh 1.5.7",
  "const-crypto",

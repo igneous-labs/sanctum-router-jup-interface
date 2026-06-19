@@ -48,7 +48,10 @@ pub fn mollusk_base() -> Mollusk {
         )
     });
     mollusk_add_so_files(&mut svm, paths);
+
     svm.sysvars.clock.epoch = TEST_EPOCH;
+    svm.sysvars.clock.slot = 432_001;
+
     svm
 }
 

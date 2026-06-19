@@ -8,7 +8,7 @@ use test_utils::{ALL_FIXTURES, SVM};
 use crate::common::{swap_test, SwapUserKeyedAccounts, LIDO_RESERVE_STAKE_UPDATE_CYCLES};
 
 const TO_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
-    amount: 1_000_000_000,
+    amount: 10_000_000_000,
     input_mint: Pubkey::new_from_array(STSOL_MINT_ADDR),
     output_mint: Pubkey::new_from_array(NATIVE_MINT),
     swap_mode: SwapMode::ExactIn,
@@ -18,11 +18,11 @@ const TO_SOL_QUOTE_PARAMS: QuoteParams = QuoteParams {
 fn psvs_stsol_wsol_fixture_basic() {
     expect![[r#"
         Quote {
-            in_amount: 1000000000,
-            out_amount: 1211175670,
-            fee_amount: 3512851,
+            in_amount: 10000000000,
+            out_amount: 11115070700,
+            fee_amount: 1011268594,
             fee_mint: So11111111111111111111111111111111111111112,
-            fee_pct: 0.00289197678192268,
+            fee_pct: 0.0833943838682104,
         }
     "#]]
     .assert_debug_eq(&SVM.with(|svm| {

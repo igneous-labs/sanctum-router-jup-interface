@@ -23,7 +23,7 @@ Test cluster is assumed to be at epoch 1
 ### Programs
 
 - All 3 deploys of SPL currently use the exact same binary, `programs/stake-pool.so`
-- We use a BPF override of the stake program `programs/stake.so` instead of the mollusk 0.5 builtin for ease of modification
+- We use a BPF override of the stake program `programs/stake.so` instead of the mollusk 0.5 builtin for ease of modification. Current file is the v5 bpf stake program on mainnet.
 
 ### Accounts
 
